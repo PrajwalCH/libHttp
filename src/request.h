@@ -4,10 +4,20 @@
 
 #include <stddef.h>
 
-typedef struct Header {
-    char *name;
-    char *value;
-} Header;
+#include "header.h"
+
+typedef enum Method {
+    METHOD_GET,
+    METHOD_HEAD,
+    METHOD_POST,
+    METHOD_PUT,
+    METHOD_DELETE,
+    METHOD_CONNECT,
+    METHOD_OPTIONS,
+    METHOD_TRACE,
+    METHOD_PATCH,
+    METHOD_INVALID
+} Method;
 
 typedef struct Request {
     char *method;

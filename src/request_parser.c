@@ -1,7 +1,10 @@
 #include "request.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "header_vector.h"
 
 #define BUFFER_CAPACITY 256
 
@@ -14,8 +17,6 @@
 static size_t raw_request_size = 0;
 static size_t index = 0;
 static size_t buffer_size = 0;
-static size_t headers_size = 0;
-static size_t headers_capacity = 0;
 
 typedef enum State {
     STATE_METHOD,
@@ -24,63 +25,6 @@ typedef enum State {
     STATE_HEADER_NAME,
     STATE_HEADER_VALUE
 } State;
-
-static void headers_set_null(Header **headers, size_t num)
-{
-    if (num >= headers_capacity)
-        return;
-
-    for (size_t i = headers_size; i < num; i++) {
-        headers[i] = NULL;
-    }
-}
-
-static Header **headers_realloc(Header **headers, size_t capacity)
-{
-    headers = realloc(headers, capacity);
-    if (headers == NULL)
-        return NULL;
-    headers_capacity += capacity;
-    headers_set_null(headers, capacity);
-    return headers;
-}
-
-static Header **headers_alloc(size_t capacity)
-{
-    Header **headers = malloc(sizeof(Header *) * capacity);
-    if (headers == NULL)
-        return NULL;
-    headers_capacity = capacity;
-    headers_set_null(headers, 5);
-    return headers;
-}
-
-static void headers_free(Header **headers)
-{
-    for (size_t i = 0; i < headers_capacity; i++) {
-        if (headers[i] == NULL)
-            continue;
-        free(headers[i]->name);
-        free(headers[i]->value);
-        free(headers[i]);
-    }
-
-    free(headers);
-    headers = NULL;
-}
-
-static void headers_push(Header **headers, Header header)
-{
-    if (headers_size >= headers_capacity) {
-        headers = realloc(headers, 5);
-        headers_capacity += 5;
-        headers_set_null(headers, 5);
-    }
-    headers[headers_size] = malloc(sizeof(Header));
-    headers[headers_size]->name = header.name;
-    headers[headers_size]->value = header.value;
-    headers_size++;
-}
 
 static void buffer_clear(char *buffer)
 {
@@ -130,7 +74,7 @@ Request request_parse(char *raw_request)
         .headers = NULL
     };
     Header current_header = {NULL, NULL};
-    Header **headers = headers_alloc(5);
+    Header **headers = header_vector_alloc(5);
 
     while (index < raw_request_size) {
         switch (state) {
@@ -173,7 +117,7 @@ Request request_parse(char *raw_request)
                 consume(raw_request);
                 consume(raw_request);
                 commit_and_advance_state(buffer, &current_header.value, &state, STATE_HEADER_NAME);
-                headers_push(headers, current_header);
+                header_vector_push(headers, current_header);
                 break;
             }
             buffer_push(buffer, consume(raw_request));
@@ -196,6 +140,6 @@ void request_dealloc_parsed(Request *request)
     request->uri = NULL;
     request->protocol = NULL;
 
-    headers_free(request->headers);
+    header_vector_dealloc(request->headers, request->headers_size);
 }
 
