@@ -30,38 +30,40 @@ size_t header_vector_size(void)
     return vector_size;
 }
 
-void header_vector_push(Header **headers, Header header)
+void header_vector_push(Header ***headers, Header header)
 {
     if (vector_size >= vector_capacity) {
-        headers = header_vector_realloc(headers, VECTOR_EXTEND_CAPACITY);
+        header_vector_realloc(headers, VECTOR_EXTEND_CAPACITY);
         vector_capacity += VECTOR_EXTEND_CAPACITY;
-        header_vector_set_null(headers, VECTOR_EXTEND_CAPACITY);
+        header_vector_set_null(*headers, VECTOR_EXTEND_CAPACITY);
     }
-    headers[vector_size] = malloc(sizeof(Header));
-    headers[vector_size]->name = header.name;
-    headers[vector_size]->value = header.value;
+    Header **deref_headers = *headers;
+    deref_headers[vector_size] = malloc(sizeof(Header));
+    deref_headers[vector_size]->name = header.name;
+    deref_headers[vector_size]->value = header.value;
     vector_size++;
 }
 
 void header_vector_dealloc(Header **headers, size_t size)
 {
     for (size_t i = 0; i < size; i++) {
-        if (headers[i] == NULL)
-            continue;
+        if (headers[i] == NULL) continue;
+
         free(headers[i]->name);
         free(headers[i]->value);
         free(headers[i]);
     }
-
     free(headers);
     headers = NULL;
+    vector_size = 0;
+    vector_capacity = 0;
 }
 
 Header **header_vector_alloc(size_t capacity)
 {
     Header **headers = malloc(sizeof(Header *) * capacity);
-    if (headers == NULL)
-        return NULL;
+    if (headers == NULL) return NULL;
+
     vector_capacity = capacity;
     header_vector_set_null(headers, capacity);
     return headers;

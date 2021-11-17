@@ -6,9 +6,10 @@
 
 #include "header.h"
 
+size_t header_vector_size(void);
+void header_vector_push(Header ***headers, Header header);
+void header_vector_dealloc(Header **headers, size_t size);
 Header **header_vector_alloc(size_t capacity);
-void header_vector_push(Header **headers, Header header);
-void header_vector_free(Header **headers, size_t size);
 
 #endif /* HEADER_VECTOR_H */
 
