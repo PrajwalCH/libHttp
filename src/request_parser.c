@@ -117,7 +117,7 @@ Request request_parse(char *raw_request)
                 consume(raw_request);
                 consume(raw_request);
                 commit_and_advance_state(buffer, &current_header.value, &state, STATE_HEADER_NAME);
-                header_vector_push(headers, current_header);
+                header_vector_push(&headers, current_header);
                 break;
             }
             buffer_push(buffer, consume(raw_request));
