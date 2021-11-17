@@ -15,14 +15,19 @@ static void header_vector_set_null(Header **headers, size_t upper_bound)
     }
 }
 
-static Header **header_vector_realloc(Header **headers, size_t capacity)
+static void header_vector_realloc(Header ***headers, size_t capacity)
 {
-    headers = realloc(headers, capacity);
-    if (headers == NULL)
-        return NULL;
+    Header **realloced_headers = realloc(*headers, capacity * sizeof(Header *));
+    if (realloced_headers == NULL) return;
+
+    *headers = realloced_headers;
     vector_capacity += capacity;
-    header_vector_set_null(headers, capacity);
-    return headers;
+    header_vector_set_null(*headers, capacity);
+}
+
+size_t header_vector_size(void)
+{
+    return vector_size;
 }
 
 void header_vector_push(Header **headers, Header header)
