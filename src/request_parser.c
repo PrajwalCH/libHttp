@@ -126,7 +126,7 @@ Request request_parse(char *raw_request)
     }
 
     request.headers = headers;
-    request.headers_size = headers_size;
+    request.headers_size = header_vector_size();
     return request;
 }
 
