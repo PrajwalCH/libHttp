@@ -129,17 +129,3 @@ Request request_parse(char *raw_request)
     request.headers_size = header_vector_size();
     return request;
 }
-
-void request_dealloc_parsed(Request *request)
-{
-    free(request->method);
-    free(request->uri);
-    free(request->protocol);
-
-    request->method = NULL;
-    request->uri = NULL;
-    request->protocol = NULL;
-
-    header_vector_dealloc(request->headers, request->headers_size);
-}
-
