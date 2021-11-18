@@ -49,8 +49,8 @@ void header_vector_dealloc(Header **headers, size_t size)
     for (size_t i = 0; i < size; i++) {
         if (headers[i] == NULL) continue;
 
-        free(headers[i]->name);
-        free(headers[i]->value);
+        sdsfree(headers[i]->name);
+        sdsfree(headers[i]->value);
         free(headers[i]);
     }
     free(headers);

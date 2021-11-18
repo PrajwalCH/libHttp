@@ -7,9 +7,9 @@
 
 void request_dealloc(Request *request)
 {
-    free(request->method);
-    free(request->uri);
-    free(request->protocol);
+    sdsfree(request->method);
+    sdsfree(request->uri);
+    sdsfree(request->protocol);
 
     request->method = NULL;
     request->uri = NULL;

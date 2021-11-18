@@ -2,9 +2,11 @@
 
 #define HEADER_H
 
+#include "sds.h"
+
 typedef struct Header {
-    char *name;
-    char *value;
+    sds name;
+    sds value;
 } Header;
 
 #endif /* HEADER_H */

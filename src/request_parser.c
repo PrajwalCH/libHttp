@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "header_vector.h"
+#include "sds.h"
 
 #define BUFFER_CAPACITY 256
 
@@ -39,9 +40,9 @@ static void buffer_push(char *buffer, char ch)
     buffer[buffer_size++] = ch;
 }
 
-static void commit_and_advance_state(char *buffer, char **output, State *old_state, State new_state)
+static void commit_and_advance_state(char *buffer, sds *output, State *old_state, State new_state)
 {
-    *output = strndup(buffer, buffer_size);
+    *output = sdsnewlen(buffer, buffer_size);
     buffer_clear(buffer);
     *old_state = new_state;
 }
@@ -67,13 +68,8 @@ Request request_parse(const char *raw_request)
 
     char buffer[BUFFER_CAPACITY + 1] = {0};
 
-    Request request = {
-        .method = NULL,
-        .uri = NULL,
-        .protocol = NULL,
-        .headers = NULL
-    };
-    Header current_header = {NULL, NULL};
+    Request request;
+    Header current_header;
     Header **headers = header_vector_alloc(5);
 
     while (index < raw_request_size) {
