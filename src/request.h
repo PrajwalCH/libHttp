@@ -27,7 +27,7 @@ typedef struct Request {
     size_t headers_size;
 } Request;
 
-Request request_parse(char *raw_request);
+Request request_parse(const char *raw_request);
 void request_dealloc(Request *request);
 
 #endif /* REQUEST_H */

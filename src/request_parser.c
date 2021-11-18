@@ -46,21 +46,21 @@ static void commit_and_advance_state(char *buffer, char **output, State *old_sta
     *old_state = new_state;
 }
 
-static char consume(char *raw_request)
+static char consume(const char *raw_request)
 {
     if (index > raw_request_size)
         return 0;
     return raw_request[index++];
 }
 
-static char peek(int offset, char *raw_request)
+static char peek(int offset, const char *raw_request)
 {
     if (index + offset >= raw_request_size)
         return 0;
     return raw_request[index + offset];
 }
 
-Request request_parse(char *raw_request)
+Request request_parse(const char *raw_request)
 {
     raw_request_size = strlen(raw_request);
     State state = STATE_METHOD;
