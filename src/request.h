@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include "header.h"
+#include "sds.h"
 
 typedef enum Method {
     METHOD_GET,
@@ -20,9 +21,9 @@ typedef enum Method {
 } Method;
 
 typedef struct Request {
-    char *method;
-    char *uri;
-    char *protocol;
+    sds method;
+    sds uri;
+    sds protocol;
     Header **headers;
     size_t headers_size;
 } Request;
