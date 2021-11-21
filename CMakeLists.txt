@@ -12,6 +12,7 @@ set(SOURCES
     src/request_dealloc.c
     src/request_parser.c
     src/sds.c
+    src/tokenizer.c
 )
 
 add_executable(
