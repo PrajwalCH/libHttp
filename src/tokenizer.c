@@ -16,20 +16,25 @@ Tokenizer tokenizer_init(const char *data)
 
 char tokenizer_peek(Tokenizer *tokenizer, size_t offset)
 {
-    if (tokenizer->data_idx + offset >= tokenizer->data_size) return '0';
-    return tokenizer->data[tokenizer->data_idx + offset];
+    if (tokenizer->data_idx + offset < tokenizer->data_size) {
+        return tokenizer->data[tokenizer->data_idx + offset];
+    } else {
+        return '0';
+    }
 }
 
 void tokenizer_advance(Tokenizer *tokenizer)
 {
-    if (tokenizer->data_idx >= tokenizer->data_size) return;
-    tokenizer->data_idx++;
+    if (tokenizer->data_idx < tokenizer->data_size) {
+        tokenizer->data_idx++;
+    }
 }
 
 void tokenizer_consume_and_advance(Tokenizer *tokenizer)
 {
-    if (tokenizer->current_token_idx >= TOKEN_MAX_SIZE) return;
-    tokenizer->current_token[tokenizer->current_token_idx++] = tokenizer->data[tokenizer->data_idx++];
+    if (tokenizer->current_token_idx < TOKEN_MAX_SIZE) {
+        tokenizer->current_token[tokenizer->current_token_idx++] = tokenizer->data[tokenizer->data_idx++];
+    }
 }
 
 static void tokenizer_clear_current_token(Tokenizer *tokenizer)
