@@ -9,9 +9,10 @@ static size_t vector_capacity = 0;
 
 static void header_vector_set_null(Header **headers, size_t upper_bound)
 {
-    if (upper_bound > vector_capacity) return;
-    for (size_t i = vector_size; i < upper_bound; i++) {
-        headers[i] = NULL;
+    if (upper_bound <= vector_capacity) {
+        for (size_t i = vector_size; i < upper_bound; i++) {
+            headers[i] = NULL;
+        }
     }
 }
 
