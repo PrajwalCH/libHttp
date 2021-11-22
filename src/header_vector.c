@@ -33,6 +33,10 @@ size_t header_vector_size(void)
 
 void header_vector_push(Header ***headers, Header header)
 {
+    if (*headers == NULL) {
+        Header **new_allocated_headers = header_vector_alloc(5);
+    }
+
     if (vector_size >= vector_capacity) {
         header_vector_realloc(headers, VECTOR_EXTEND_CAPACITY);
     }
