@@ -26,9 +26,14 @@ static void header_vector_realloc(Header ***headers, size_t capacity)
     header_vector_set_null(*headers, capacity);
 }
 
-size_t header_vector_size(void)
+Header **header_vector_alloc(size_t capacity)
 {
-    return vector_size;
+    Header **headers = malloc(sizeof(Header *) * capacity);
+    if (headers == NULL) return NULL;
+
+    vector_capacity = capacity;
+    header_vector_set_null(headers, capacity);
+    return headers;
 }
 
 void header_vector_push(Header ***headers, Header header)
@@ -62,13 +67,8 @@ void header_vector_dealloc(Header **headers, size_t size)
     vector_capacity = 0;
 }
 
-Header **header_vector_alloc(size_t capacity)
+size_t header_vector_size(void)
 {
-    Header **headers = malloc(sizeof(Header *) * capacity);
-    if (headers == NULL) return NULL;
-
-    vector_capacity = capacity;
-    header_vector_set_null(headers, capacity);
-    return headers;
+    return vector_size;
 }
 
