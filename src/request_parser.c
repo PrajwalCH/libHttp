@@ -5,19 +5,7 @@
 #include <stdlib.h>
 
 #include "header_vector.h"
-#include "sds.h"
-
-#define BUFFER_CAPACITY 256
-
-#define PEEK(request) \
-    peek(0, request)
-
-#define PEEK_TO(n, request) \
-    peek(n, request)
-
-static size_t raw_request_size = 0;
-static size_t index = 0;
-static size_t buffer_size = 0;
+#include "tokenizer.h"
 
 typedef enum State {
     STATE_METHOD,
@@ -27,96 +15,65 @@ typedef enum State {
     STATE_HEADER_VALUE
 } State;
 
-static void buffer_clear(char *buffer)
-{
-    memset(buffer, 0, buffer_size);
-    buffer_size = 0;
-}
-
-static void buffer_push(char *buffer, char ch)
-{
-    if (buffer_size >= BUFFER_CAPACITY)
-        return;
-    buffer[buffer_size++] = ch;
-}
-
-static void commit_and_advance_state(char *buffer, sds *output, State *old_state, State new_state)
-{
-    *output = sdsnewlen(buffer, buffer_size);
-    buffer_clear(buffer);
-    *old_state = new_state;
-}
-
-static char consume(const char *raw_request)
-{
-    if (index > raw_request_size)
-        return 0;
-    return raw_request[index++];
-}
-
-static char peek(int offset, const char *raw_request)
-{
-    if (index + offset >= raw_request_size)
-        return 0;
-    return raw_request[index + offset];
-}
-
 Request request_parse(const char *raw_request)
 {
-    raw_request_size = strlen(raw_request);
+    Tokenizer tokenizer = tokenizer_init(raw_request);
     State state = STATE_METHOD;
-
-    char buffer[BUFFER_CAPACITY + 1] = {0};
 
     Request request;
     Header current_header;
     Header **headers = header_vector_alloc(5);
 
-    while (index < raw_request_size) {
+    while (tokenizer.data_idx < tokenizer.data_size) {
         switch (state) {
         case STATE_METHOD:
-            if (PEEK(raw_request) == ' ') {
-                consume(raw_request);
-                commit_and_advance_state(buffer, &request.method, &state, STATE_URI);
+            if (tokenizer_peek(&tokenizer, 0) == ' ') {
+                tokenizer_advance(&tokenizer);
+                tokenizer_commit(&tokenizer, &request.method);
+                state = STATE_URI;
                 break;
             }
-            buffer_push(buffer, consume(raw_request));
+            tokenizer_consume_and_advance(&tokenizer);
             break;
         case STATE_URI:
-            if (PEEK(raw_request) == ' ') {
-                consume(raw_request);
-                commit_and_advance_state(buffer, &request.uri, &state, STATE_PROTOCOL);
+            if (tokenizer_peek(&tokenizer, 0) == ' ') {
+                tokenizer_advance(&tokenizer);
+                tokenizer_commit(&tokenizer, &request.uri);
+                state = STATE_PROTOCOL;
                 break;
             }
-            buffer_push(buffer, consume(raw_request));
+            tokenizer_consume_and_advance(&tokenizer);
             break;
         case STATE_PROTOCOL:
-            if (PEEK(raw_request) == '\r' && PEEK_TO(1, raw_request) == '\n') {
-                consume(raw_request);
-                consume(raw_request);
-                commit_and_advance_state(buffer, &request.protocol, &state, STATE_HEADER_NAME);
+            if (tokenizer_peek(&tokenizer, 0) == '\r' && tokenizer_peek(&tokenizer, 1) == '\n') {
+                tokenizer_advance(&tokenizer);
+                tokenizer_advance(&tokenizer);
+                tokenizer_commit(&tokenizer, &request.protocol);
+                state = STATE_HEADER_NAME;
                 break;
             }
-            buffer_push(buffer, consume(raw_request));
+            tokenizer_consume_and_advance(&tokenizer);
             break;
         case STATE_HEADER_NAME:
-            if (PEEK(raw_request) == ':' && PEEK_TO(1, raw_request) == ' ') {
-                consume(raw_request);
-                consume(raw_request);
-                commit_and_advance_state(buffer, &current_header.name, &state, STATE_HEADER_VALUE);
+            if (tokenizer_peek(&tokenizer, 0) == ':' && tokenizer_peek(&tokenizer, 1) == ' ') {
+                tokenizer_advance(&tokenizer);
+                tokenizer_advance(&tokenizer);
+                tokenizer_commit(&tokenizer, &current_header.name);
+                state = STATE_HEADER_VALUE;
                 break;
             }
-            buffer_push(buffer, consume(raw_request));
+            tokenizer_consume_and_advance(&tokenizer);
             break;
         case STATE_HEADER_VALUE:
-            if (PEEK(raw_request) == '\r' && PEEK_TO(1, raw_request) == '\n') {
-                consume(raw_request);
-                consume(raw_request);
-                commit_and_advance_state(buffer, &current_header.value, &state, STATE_HEADER_NAME);
+            if (tokenizer_peek(&tokenizer, 0) == '\r' && tokenizer_peek(&tokenizer, 1) == '\n') {
+                tokenizer_advance(&tokenizer);
+                tokenizer_advance(&tokenizer);
+                tokenizer_commit(&tokenizer, &current_header.value);
                 header_vector_push(&headers, current_header);
+                state = STATE_HEADER_NAME;
                 break;
             }
-            buffer_push(buffer, consume(raw_request));
+            tokenizer_consume_and_advance(&tokenizer);
             break;
         }
     }
