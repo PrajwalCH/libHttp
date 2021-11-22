@@ -34,7 +34,6 @@ void header_vector_push(Header ***headers, Header header)
 {
     if (vector_size >= vector_capacity) {
         header_vector_realloc(headers, VECTOR_EXTEND_CAPACITY);
-        vector_capacity += VECTOR_EXTEND_CAPACITY;
         header_vector_set_null(*headers, VECTOR_EXTEND_CAPACITY);
     }
     Header **deref_headers = *headers;
