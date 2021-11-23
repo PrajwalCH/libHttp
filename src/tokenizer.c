@@ -43,8 +43,9 @@ static void tokenizer_clear_current_token(Tokenizer *tokenizer)
     tokenizer->current_token_idx = 0;
 }
 
-void tokenizer_commit(Tokenizer *tokenizer, sds *dest)
+void tokenizer_commit_and_advance_state(Tokenizer *tokenizer, sds *dest, State *old_state, State new_state)
 {
     *dest = sdsnewlen(tokenizer->current_token, tokenizer->current_token_idx);
     tokenizer_clear_current_token(tokenizer);
+    *old_state = new_state;
 }

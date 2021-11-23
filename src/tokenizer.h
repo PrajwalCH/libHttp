@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include "sds.h"
+#include "state.h"
 
 #define TOKEN_MAX_SIZE 255
 
@@ -20,7 +21,7 @@ Tokenizer tokenizer_init(const char *data);
 char tokenizer_peek(Tokenizer *tokenizer, size_t offset);
 void tokenizer_advance(Tokenizer *tokenizer);
 void tokenizer_consume_and_advance(Tokenizer *tokenizer);
-void tokenizer_commit(Tokenizer *tokenizer, sds *dest);
+void tokenizer_commit_and_advance_state(Tokenizer *tokenizer, sds *dest, State *old_state, State new_state);
 
 #endif /* TOKENIZER_H */
 

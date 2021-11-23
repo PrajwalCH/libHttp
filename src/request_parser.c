@@ -5,15 +5,8 @@
 #include <stdlib.h>
 
 #include "header_vector.h"
+#include "state.h"
 #include "tokenizer.h"
-
-typedef enum State {
-    STATE_METHOD,
-    STATE_URI,
-    STATE_PROTOCOL,
-    STATE_HEADER_NAME,
-    STATE_HEADER_VALUE
-} State;
 
 Request request_parse(const char *raw_request)
 {
@@ -29,8 +22,7 @@ Request request_parse(const char *raw_request)
         case STATE_METHOD:
             if (tokenizer_peek(&tokenizer, 0) == ' ') {
                 tokenizer_advance(&tokenizer);
-                tokenizer_commit(&tokenizer, &request.method);
-                state = STATE_URI;
+                tokenizer_commit_and_advance_state(&tokenizer, &request.method, &state, STATE_URI);
                 break;
             }
             tokenizer_consume_and_advance(&tokenizer);
@@ -38,8 +30,7 @@ Request request_parse(const char *raw_request)
         case STATE_URI:
             if (tokenizer_peek(&tokenizer, 0) == ' ') {
                 tokenizer_advance(&tokenizer);
-                tokenizer_commit(&tokenizer, &request.uri);
-                state = STATE_PROTOCOL;
+                tokenizer_commit_and_advance_state(&tokenizer, &request.uri, &state, STATE_PROTOCOL);
                 break;
             }
             tokenizer_consume_and_advance(&tokenizer);
@@ -48,8 +39,7 @@ Request request_parse(const char *raw_request)
             if (tokenizer_peek(&tokenizer, 0) == '\r' && tokenizer_peek(&tokenizer, 1) == '\n') {
                 tokenizer_advance(&tokenizer);
                 tokenizer_advance(&tokenizer);
-                tokenizer_commit(&tokenizer, &request.protocol);
-                state = STATE_HEADER_NAME;
+                tokenizer_commit_and_advance_state(&tokenizer, &request.protocol, &state, STATE_HEADER_NAME);
                 break;
             }
             tokenizer_consume_and_advance(&tokenizer);
@@ -58,8 +48,7 @@ Request request_parse(const char *raw_request)
             if (tokenizer_peek(&tokenizer, 0) == ':' && tokenizer_peek(&tokenizer, 1) == ' ') {
                 tokenizer_advance(&tokenizer);
                 tokenizer_advance(&tokenizer);
-                tokenizer_commit(&tokenizer, &current_header.name);
-                state = STATE_HEADER_VALUE;
+                tokenizer_commit_and_advance_state(&tokenizer, &current_header.name, &state, STATE_HEADER_VALUE);
                 break;
             }
             tokenizer_consume_and_advance(&tokenizer);
@@ -68,12 +57,13 @@ Request request_parse(const char *raw_request)
             if (tokenizer_peek(&tokenizer, 0) == '\r' && tokenizer_peek(&tokenizer, 1) == '\n') {
                 tokenizer_advance(&tokenizer);
                 tokenizer_advance(&tokenizer);
-                tokenizer_commit(&tokenizer, &current_header.value);
+                tokenizer_commit_and_advance_state(&tokenizer, &current_header.value, &state, STATE_HEADER_NAME);
                 header_vector_push(&headers, current_header);
-                state = STATE_HEADER_NAME;
                 break;
             }
             tokenizer_consume_and_advance(&tokenizer);
+            break;
+        default:
             break;
         }
     }
